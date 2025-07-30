@@ -1,59 +1,49 @@
 import 'package:flutter/material.dart';
 import 'enter_address_details_screen.dart';
 
-// This is the main widget for the "Confirm Address" screen.
-// It's stateful because the bottom panel changes based on location permissions.
 class ConfirmAddressScreen extends StatefulWidget {
-  const ConfirmAddressScreen({super.key});
+  final bool showLocationFoundFirst;
+
+  const ConfirmAddressScreen({
+    super.key,
+    required this.showLocationFoundFirst,
+  });
 
   @override
   State<ConfirmAddressScreen> createState() => _ConfirmAddressScreenState();
 }
 
 class _ConfirmAddressScreenState extends State<ConfirmAddressScreen> {
-  // This boolean controls which bottom sheet is shown.
-  // We default to `true` to show the "Location Found" state first.
-  bool _locationPermissionGranted = true;
+  late bool _locationPermissionGranted;
 
-  void _togglePermissionState() {
-    setState(() {
-      _locationPermissionGranted = !_locationPermissionGranted;
-    });
+  @override
+  void initState() {
+    super.initState();
+    _locationPermissionGranted = widget.showLocationFoundFirst;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // We use a Stack to layer widgets on top of each other.
-      // The map is the base layer, and the UI sits on top.
       body: Stack(
         children: [
-          // --- MAP PLACEHOLDER ---
-          // In a real app, you would replace this Container with a map widget
-          // like `google_maps_flutter`.
-          Container(
-            color:
-                const Color(0xFFE5E3DF), // A light gray for the map background
-            child: const Center(
-              child: Icon(
-                Icons.location_on,
-                size: 60,
-                color: Colors.black54,
-              ),
+          //! --- MAP IMAGE BACKGROUND ---
+          Positioned.fill(
+            child: Image.asset(
+              'assets/map_image.png',
+              fit: BoxFit.cover,
+              alignment: Alignment.center,
             ),
           ),
 
-          // --- TOP UI ELEMENTS ---
-          // We use a SafeArea to avoid the system's top notch/bar.
+          //! --- TOP UI ELEMENTS ---
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 children: [
-                  // Top bar with back arrow and title
                   Row(
                     children: [
-                      // Back button
                       Container(
                         decoration: BoxDecoration(
                           color: Colors.black.withOpacity(0.5),
@@ -66,11 +56,12 @@ class _ConfirmAddressScreenState extends State<ConfirmAddressScreen> {
                         ),
                       ),
                       const SizedBox(width: 16),
-                      // Title
-                      const Text(
+                      Text(
                         'Confirm Address',
                         style: TextStyle(
                           color: Colors.black,
+                          // color: Colors.white,
+                          // background: Colors.black,
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
@@ -78,18 +69,20 @@ class _ConfirmAddressScreenState extends State<ConfirmAddressScreen> {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  // Search bar
                   const TextField(
                     decoration: InputDecoration(
                       hintText: 'Search for area, street Name ...',
                       hintStyle: TextStyle(color: Color(0xFF8E8E93)),
                       filled: true,
-                      fillColor: Colors.white,
+                      fillColor: Colors.black,
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(12)),
-                        borderSide: BorderSide.none,
+                        borderRadius: BorderRadius.all(Radius.circular(22)),
+                        borderSide: BorderSide(
+                          color: Color.fromARGB(238, 48, 48, 48),
+                          width: 0.3,
+                        ),
                       ),
-                      prefixIcon: Icon(Icons.search, color: Colors.black54),
+                      prefixIcon: Icon(Icons.search, color: Colors.white),
                     ),
                   ),
                 ],
@@ -97,63 +90,45 @@ class _ConfirmAddressScreenState extends State<ConfirmAddressScreen> {
             ),
           ),
 
-          // --- BOTTOM PANEL ---
-          // This widget is positioned at the bottom of the screen.
-          // The content inside changes based on the `_locationPermissionGranted` state.
+          //! --- BOTTOM PANEL ---
           Positioned(
             left: 0,
             right: 0,
             bottom: 0,
             child: _locationPermissionGranted
-                ? _buildLocationFoundSheet() // Show this if permission is granted
-                : _buildPermissionDeniedSheet(), // Show this if permission is denied
+                ? _buildLocationFoundSheet()
+                : _buildPermissionDeniedSheet(),
           ),
 
-          // --- FLOATING "LOCATE ME" BUTTON ---
-          // This button is positioned relative to the bottom sheet.
-          Positioned(
-            bottom: _locationPermissionGranted
-                ? 210
-                : 250, // Adjust position based on sheet height
-            left: 0,
-            right: 0,
-            child: Center(
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  // TODO: Implement locate me functionality
-                },
-                icon: const Icon(Icons.my_location),
-                label: const Text('Locate Me'),
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.black,
-                  backgroundColor: Colors.yellow[700],
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
+          //! --- FLOATING "LOCATE ME" BUTTON ---
+          if (_locationPermissionGranted)
+            Positioned(
+              bottom: 250,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: ElevatedButton.icon(
+                  onPressed: () {},
+                  icon: const Icon(Icons.my_location),
+                  label: const Text('Locate Me'),
+                  style: ElevatedButton.styleFrom(
+                    foregroundColor: Colors.black,
+                    backgroundColor: Colors.yellow[700],
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 12),
                   ),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 ),
               ),
             ),
-          ),
-
-          // --- DEMO TOGGLE BUTTON ---
-          // This button is just for demonstration purposes to let you switch
-          // between the two UI states easily. You can remove it in your final app.
-          Positioned(
-            top: 150,
-            right: 16,
-            child: ElevatedButton(
-              onPressed: _togglePermissionState,
-              child: const Text('Toggle UI'),
-            ),
-          )
         ],
       ),
     );
   }
 
-  // --- WIDGET FOR "LOCATION FOUND" STATE ---
+  //! --- WIDGET FOR "LOCATION FOUND" STATE ---
   Widget _buildLocationFoundSheet() {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
@@ -173,7 +148,6 @@ class _ConfirmAddressScreenState extends State<ConfirmAddressScreen> {
                 color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
-          // Address info card
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -196,7 +170,7 @@ class _ConfirmAddressScreenState extends State<ConfirmAddressScreen> {
                   ),
                 ),
                 TextButton(
-                  onPressed: () {},
+                  onPressed: () => Navigator.pop(context),
                   child: Text('Change',
                       style: TextStyle(color: Colors.yellow[700])),
                 ),
@@ -204,7 +178,6 @@ class _ConfirmAddressScreenState extends State<ConfirmAddressScreen> {
             ),
           ),
           const SizedBox(height: 20),
-          // "Add More Details" button
           ElevatedButton(
             onPressed: () {
               Navigator.push(
@@ -223,10 +196,7 @@ class _ConfirmAddressScreenState extends State<ConfirmAddressScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text('ADD MORE ADDRESS DETAILS',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold)),
+                    style: TextStyle(color: Colors.white)),
                 SizedBox(width: 8),
                 Icon(Icons.arrow_forward, color: Colors.white, size: 16),
               ],
@@ -237,7 +207,7 @@ class _ConfirmAddressScreenState extends State<ConfirmAddressScreen> {
     );
   }
 
-  // --- WIDGET FOR "PERMISSION DENIED" STATE ---
+  //! --- WIDGET FOR "PERMISSION DENIED" STATE ---
   Widget _buildPermissionDeniedSheet() {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
@@ -265,9 +235,22 @@ class _ConfirmAddressScreenState extends State<ConfirmAddressScreen> {
             style: TextStyle(color: Colors.white70, fontSize: 14),
           ),
           const SizedBox(height: 24),
-          // "Enable Location" button
           ElevatedButton(
-            onPressed: () {},
+            onPressed: () {
+              // ScaffoldMessenger.of(context).showSnackBar(
+              //   const SnackBar(
+              //     backgroundColor: Colors.pink,
+              //     content: Text('Redirecting...'),
+              //   ),
+              // );
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      const ConfirmAddressScreen(showLocationFoundFirst: true),
+                ),
+              );
+            },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color.fromARGB(255, 48, 39, 236),
               minimumSize: const Size(double.infinity, 50),
@@ -285,9 +268,14 @@ class _ConfirmAddressScreenState extends State<ConfirmAddressScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          // "Continue With" button
           OutlinedButton(
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const EnterAddressDetailsScreen()),
+              );
+            },
             style: OutlinedButton.styleFrom(
               foregroundColor: Colors.white,
               minimumSize: const Size(double.infinity, 50),

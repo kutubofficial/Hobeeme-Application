@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+// import 'package:flutter/services.dart';
+import 'confirm_address_screen.dart';
 
 class SearchScreen extends StatelessWidget {
   const SearchScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
+    // SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
 
     return Scaffold(
       body: SafeArea(
@@ -21,7 +22,12 @@ class SearchScreen extends StatelessWidget {
                     icon: const Icon(Icons.arrow_back,
                         size: 28, color: Colors.white),
                     onPressed: () {
-                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          backgroundColor: Colors.red,
+                          content: Text('Not working yet...'),
+                        ),
+                      );
                     },
                   ),
                   const SizedBox(width: 4),
@@ -35,8 +41,11 @@ class SearchScreen extends StatelessWidget {
                         filled: true,
                         fillColor: const Color(0xFF2C2C2E),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                          borderSide: BorderSide.none,
+                          borderRadius: BorderRadius.circular(22.0),
+                          borderSide: BorderSide(
+                            color: const Color.fromARGB(239, 62, 62, 62),
+                            width: 0.6,
+                          ),
                         ),
                         isDense: true,
                         contentPadding: const EdgeInsets.symmetric(
@@ -45,6 +54,7 @@ class SearchScreen extends StatelessWidget {
                       ),
                     ),
                   ),
+                  //! Added location button to navigate to the next screen
                   IconButton(
                     icon: const Icon(Icons.location_on_outlined,
                         size: 28, color: Colors.white),
@@ -74,7 +84,7 @@ class SearchScreen extends StatelessWidget {
                     topRight: Radius.circular(30.0),
                   ),
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -91,12 +101,12 @@ class SearchScreen extends StatelessWidget {
                           itemBuilder: (context, index) =>
                               const DanceClassItem(),
                           separatorBuilder: (context, index) =>
-                              const SizedBox(height: 20),
+                              const SizedBox(height: 12),
                         ),
                         const SizedBox(height: 30),
                         const Text('Recently Experiences',
                             style: TextStyle(
-                                fontSize: 20,
+                                fontSize: 16,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white)),
                         const SizedBox(height: 20),
@@ -139,12 +149,15 @@ class DanceClassItem extends StatelessWidget {
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(10),
-            child: const Icon(Icons.person, size: 40, color: Color(0xFFEFE0D9)),
+            child: Image.asset(
+              'assets/image.png',
+              fit: BoxFit.cover,
+            ),
           ),
         ),
-        const SizedBox(width: 16),
+        const SizedBox(width: 12),
         const Text('Salsa dance by DD Studio',
-            style: TextStyle(fontSize: 16, color: Colors.white)),
+            style: TextStyle(fontSize: 12, color: Colors.white)),
       ],
     );
   }
@@ -161,6 +174,7 @@ class SelectLocationScreen extends StatelessWidget {
         bottom: false,
         child: Column(
           children: [
+            //! --- TOP TITLE AREA ---
             Padding(
               padding: const EdgeInsets.fromLTRB(8, 12, 16, 16),
               child: Row(
@@ -185,6 +199,8 @@ class SelectLocationScreen extends StatelessWidget {
                 ],
               ),
             ),
+
+            //! --- MAIN CONTENT AREA ---
             Expanded(
               child: Container(
                 decoration: const BoxDecoration(
@@ -214,8 +230,11 @@ class SelectLocationScreen extends StatelessWidget {
                             fillColor: Color(0xFF1C1C1E),
                             border: OutlineInputBorder(
                               borderRadius:
-                                  BorderRadius.all(Radius.circular(12)),
-                              borderSide: BorderSide.none,
+                                  BorderRadius.all(Radius.circular(22)),
+                              borderSide: BorderSide(
+                                color: const Color.fromARGB(239, 62, 62, 62),
+                                width: 0.2,
+                              ),
                             ),
                             isDense: true,
                             contentPadding: EdgeInsets.symmetric(vertical: 14),
@@ -224,18 +243,35 @@ class SelectLocationScreen extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 20),
-                        LocationOptionTile(
-                            icon: Icons.add,
-                            text: 'Add address',
-                            iconColor: Colors.yellow[700]!),
-                        const SizedBox(height: 12),
                         GestureDetector(
                           onTap: () {
+                            //! This opens the "Location Found" view
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) =>
-                                      const ConfirmAddressScreen()),
+                                builder: (context) =>
+                                    const ConfirmAddressScreen(
+                                        showLocationFoundFirst: false),
+                              ),
+                            );
+                          },
+                          child: LocationOptionTile(
+                            icon: Icons.add,
+                            text: 'Add address',
+                            iconColor: Colors.yellow[700]!,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        GestureDetector(
+                          onTap: () {
+                            //! This opens the "Permission Denied" view
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const ConfirmAddressScreen(
+                                        showLocationFoundFirst: true),
+                              ),
                             );
                           },
                           child: LocationOptionTile(
@@ -250,17 +286,22 @@ class SelectLocationScreen extends StatelessWidget {
                                 color: Color(0xFF8E8E93), fontSize: 15)),
                         const SizedBox(height: 16),
                         SavedAddressCard(
-                            icon: Icons.home_outlined,
-                            title: 'Home',
-                            subtitle: 'Unnamed road, palm jumeirah Dubai',
-                            isSelected: true),
+                          icon: Icons.home_outlined,
+                          title: 'Home',
+                          subtitle: 'Unnamed road, palm jumeirah Dubai',
+                          isSelected: true,
+                          height: 65,
+                        ),
                         const SizedBox(height: 12),
                         SavedAddressCard(
-                            icon: Icons.location_on_outlined,
-                            title: 'Others',
-                            subtitle: 'Add other address',
-                            isSelected: false),
+                          icon: Icons.location_on_outlined,
+                          title: 'Others',
+                          subtitle: 'Add other address',
+                          isSelected: false,
+                          height: 15,
+                        ),
                         const SizedBox(height: 30),
+                        //* Nearby Locations
                         const Text('Nearby locations',
                             style: TextStyle(
                                 color: Color(0xFF8E8E93), fontSize: 15)),
@@ -307,6 +348,7 @@ class LocationOptionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
+      // height: 65,
       decoration: BoxDecoration(
           color: const Color(0xFF1C1C1E),
           borderRadius: BorderRadius.circular(12)),
@@ -314,7 +356,8 @@ class LocationOptionTile extends StatelessWidget {
         children: [
           Icon(icon, color: iconColor, size: 24),
           const SizedBox(width: 16),
-          Text(text, style: const TextStyle(fontSize: 16, color: Colors.white)),
+          Text(text,
+              style: const TextStyle(fontSize: 16, color: Colors.yellow)),
         ],
       ),
     );
@@ -326,13 +369,16 @@ class SavedAddressCard extends StatelessWidget {
   final String title;
   final String subtitle;
   final bool isSelected;
+  final double? height;
 
-  const SavedAddressCard(
-      {super.key,
-      required this.icon,
-      required this.title,
-      required this.subtitle,
-      required this.isSelected});
+  const SavedAddressCard({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.isSelected,
+    this.height,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -398,22 +444,6 @@ class NearbyLocationTile extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class ConfirmAddressScreen extends StatelessWidget {
-  const ConfirmAddressScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Confirm Address'),
-      ),
-      body: const Center(
-        child: Text('Confirm Address Screen'),
       ),
     );
   }

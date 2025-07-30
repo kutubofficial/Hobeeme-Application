@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-// This is the main widget for the "Enter Address Details" screen.
-// It's stateful to manage the selected tag ('Home' vs 'Others').
 class EnterAddressDetailsScreen extends StatefulWidget {
   const EnterAddressDetailsScreen({super.key});
 
@@ -10,11 +8,9 @@ class EnterAddressDetailsScreen extends StatefulWidget {
       _EnterAddressDetailsScreenState();
 }
 
-// An enum makes managing the state of the selected tag safer and cleaner.
 enum AddressTag { home, others }
 
 class _EnterAddressDetailsScreenState extends State<EnterAddressDetailsScreen> {
-  // This state variable tracks the currently selected tag.
   AddressTag _selectedTag = AddressTag.home;
 
   @override
@@ -34,7 +30,6 @@ class _EnterAddressDetailsScreenState extends State<EnterAddressDetailsScreen> {
         ),
         centerTitle: true,
       ),
-      // We use a Column with an Expanded widget to push the button to the bottom.
       body: Column(
         children: [
           Expanded(
@@ -43,7 +38,7 @@ class _EnterAddressDetailsScreenState extends State<EnterAddressDetailsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // "Tag This Location" section
+                  //* "Tag This Location" section
                   const Text(
                     'Tag This Location For later',
                     style: TextStyle(color: Colors.white70, fontSize: 16),
@@ -76,7 +71,7 @@ class _EnterAddressDetailsScreenState extends State<EnterAddressDetailsScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  // This is the conditional field that appears only when 'Others' is selected.
+                  //* This is the conditional field that appears only when 'Others' is selected.
                   if (_selectedTag == AddressTag.others)
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -91,7 +86,7 @@ class _EnterAddressDetailsScreenState extends State<EnterAddressDetailsScreen> {
                       ],
                     ),
 
-                  // "Current Location" section
+                  //! "Current Location" section
                   const Text(
                     'Current Location',
                     style: TextStyle(color: Colors.white70, fontSize: 16),
@@ -127,7 +122,7 @@ class _EnterAddressDetailsScreenState extends State<EnterAddressDetailsScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  // "Enter Your Complete Address" section
+                  //~ "Enter Your Complete Address" section
                   const Text(
                     'Enter Your Complete Address*',
                     style: TextStyle(color: Colors.white70, fontSize: 16),
@@ -141,17 +136,23 @@ class _EnterAddressDetailsScreenState extends State<EnterAddressDetailsScreen> {
             ),
           ),
 
-          // This is the "SAVE & CONTINUE" button at the bottom.
+          //! This is the "SAVE & CONTINUE" button at the bottom.
           Padding(
             padding: const EdgeInsets.all(20.0),
             child: ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    backgroundColor: Colors.green,
+                    content: Text('Not available yet...'),
+                  ),
+                );
+              },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color.fromARGB(
-                    255, 48, 39, 236), // Corrected purple color
+                backgroundColor: const Color.fromARGB(255, 48, 39, 236),
                 minimumSize: const Size(double.infinity, 50),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)), // Matching radius
+                    borderRadius: BorderRadius.circular(12)),
               ),
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -175,7 +176,7 @@ class _EnterAddressDetailsScreenState extends State<EnterAddressDetailsScreen> {
   }
 }
 
-// A reusable widget for our styled TextFields to avoid repeating code.
+//* A reusable widget for our styled TextFields to avoid repeating code.
 class CustomTextField extends StatelessWidget {
   final String hintText;
   const CustomTextField({super.key, required this.hintText});
@@ -200,7 +201,7 @@ class CustomTextField extends StatelessWidget {
   }
 }
 
-// A reusable widget for the toggle buttons ('Home' and 'Others').
+//* A reusable widget for the toggle buttons ('Home' and 'Others').
 class TagButton extends StatelessWidget {
   final String text;
   final IconData icon;
@@ -222,11 +223,8 @@ class TagButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         decoration: BoxDecoration(
-          // The background color is now always the same.
           color: const Color(0xFF1C1C1E),
-          // The border radius is now smaller to match the design.
           borderRadius: BorderRadius.circular(12),
-          // The border is now conditional: it only appears when selected.
           border: isSelected
               ? Border.all(color: const Color(0xFF8A2BE2), width: 1.5)
               : null,
