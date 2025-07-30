@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'enter_address_details_screen.dart';
 
 class ConfirmAddressScreen extends StatefulWidget {
@@ -16,6 +18,12 @@ class ConfirmAddressScreen extends StatefulWidget {
 class _ConfirmAddressScreenState extends State<ConfirmAddressScreen> {
   late bool _locationPermissionGranted;
 
+  final Completer<GoogleMapController> _mapController = Completer();
+
+  static const LatLng _initialPosition = LatLng(25.2048, 55.2708);
+
+  LatLng _currentMapCenter = _initialPosition;
+
   @override
   void initState() {
     super.initState();
@@ -27,12 +35,37 @@ class _ConfirmAddressScreenState extends State<ConfirmAddressScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          //! --- MAP IMAGE BACKGROUND ---
-          Positioned.fill(
-            child: Image.asset(
-              'assets/map_image.png',
-              fit: BoxFit.cover,
-              alignment: Alignment.center,
+          //! --- GOOGLE MAP WIDGET ---
+          GoogleMap(
+            initialCameraPosition: const CameraPosition(
+              target: _initialPosition,
+              zoom: 14.0,
+            ),
+            onMapCreated: (GoogleMapController controller) {
+              if (!_mapController.isCompleted) {
+                _mapController.complete(controller);
+              }
+            },
+            //* This updates our state variable every time the map moves
+            onCameraMove: (CameraPosition position) {
+              setState(() {
+                _currentMapCenter = position.target;
+              });
+            },
+            zoomControlsEnabled: false,
+            myLocationButtonEnabled: false,
+          ),
+
+          //! --- CENTER PIN ICON ---
+          //* This pin stays in the center while the map moves underneath it
+          const Center(
+            child: Padding(
+              padding: EdgeInsets.only(bottom: 40.0),
+              child: Icon(
+                Icons.location_pin,
+                color: Colors.red,
+                size: 50.0,
+              ),
             ),
           ),
 
@@ -56,16 +89,6 @@ class _ConfirmAddressScreenState extends State<ConfirmAddressScreen> {
                         ),
                       ),
                       const SizedBox(width: 16),
-                      Text(
-                        'Confirm Address',
-                        style: TextStyle(
-                          color: Colors.black,
-                          // color: Colors.white,
-                          // background: Colors.black,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -74,15 +97,12 @@ class _ConfirmAddressScreenState extends State<ConfirmAddressScreen> {
                       hintText: 'Search for area, street Name ...',
                       hintStyle: TextStyle(color: Color(0xFF8E8E93)),
                       filled: true,
-                      fillColor: Colors.black,
+                      fillColor: Colors.white,
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(22)),
-                        borderSide: BorderSide(
-                          color: Color.fromARGB(238, 48, 48, 48),
-                          width: 0.3,
-                        ),
+                        borderRadius: BorderRadius.all(Radius.circular(12)),
+                        borderSide: BorderSide.none,
                       ),
-                      prefixIcon: Icon(Icons.search, color: Colors.white),
+                      prefixIcon: Icon(Icons.search, color: Colors.grey),
                     ),
                   ),
                 ],
@@ -104,28 +124,26 @@ class _ConfirmAddressScreenState extends State<ConfirmAddressScreen> {
           if (_locationPermissionGranted)
             Positioned(
               bottom: 250,
-              left: 0,
-              right: 0,
-              child: Center(
-                child: ElevatedButton.icon(
-                  onPressed: () {},
-                  icon: const Icon(Icons.my_location),
-                  label: const Text('Locate Me'),
-                  style: ElevatedButton.styleFrom(
-                    foregroundColor: Colors.black,
-                    backgroundColor: Colors.yellow[700],
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 24, vertical: 12),
-                  ),
-                ),
+              right: 20,
+              child: FloatingActionButton(
+                onPressed: _locateMe,
+                backgroundColor: Colors.white,
+                child: const Icon(Icons.my_location, color: Colors.black),
               ),
             ),
         ],
       ),
     );
+  }
+
+  Future<void> _locateMe() async {
+    final GoogleMapController controller = await _mapController.future;
+    controller.animateCamera(CameraUpdate.newCameraPosition(
+      const CameraPosition(
+        target: _initialPosition,
+        zoom: 16.0,
+      ),
+    ));
   }
 
   //! --- WIDGET FOR "LOCATION FOUND" STATE ---
@@ -141,6 +159,7 @@ class _ConfirmAddressScreenState extends State<ConfirmAddressScreen> {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           const Text(
             'We Found You Here - Let\'s Get Started',
@@ -158,14 +177,17 @@ class _ConfirmAddressScreenState extends State<ConfirmAddressScreen> {
               children: [
                 Icon(Icons.location_on_outlined, color: Colors.yellow[700]),
                 const SizedBox(width: 12),
-                const Expanded(
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('unnamed road',
-                          style: TextStyle(color: Colors.white)),
-                      SizedBox(height: 4),
-                      Text('dubai', style: TextStyle(color: Colors.white70)),
+                      Text(
+                          'Lat: ${_currentMapCenter.latitude.toStringAsFixed(4)}',
+                          style: const TextStyle(color: Colors.white)),
+                      const SizedBox(height: 4),
+                      Text(
+                          'Lng: ${_currentMapCenter.longitude.toStringAsFixed(4)}',
+                          style: const TextStyle(color: Colors.white70)),
                     ],
                   ),
                 ),
@@ -209,6 +231,7 @@ class _ConfirmAddressScreenState extends State<ConfirmAddressScreen> {
 
   //! --- WIDGET FOR "PERMISSION DENIED" STATE ---
   Widget _buildPermissionDeniedSheet() {
+    //* This sheet remains the same as your original code
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
       decoration: const BoxDecoration(
@@ -237,18 +260,12 @@ class _ConfirmAddressScreenState extends State<ConfirmAddressScreen> {
           const SizedBox(height: 24),
           ElevatedButton(
             onPressed: () {
-              // ScaffoldMessenger.of(context).showSnackBar(
-              //   const SnackBar(
-              //     backgroundColor: Colors.pink,
-              //     content: Text('Redirecting...'),
-              //   ),
-              // );
-              Navigator.push(
+              //* This logic might need adjustment. For now, it just reloads the screen.
+              Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                  builder: (context) =>
-                      const ConfirmAddressScreen(showLocationFoundFirst: true),
-                ),
+                    builder: (context) => const ConfirmAddressScreen(
+                        showLocationFoundFirst: true)),
               );
             },
             style: ElevatedButton.styleFrom(
@@ -266,25 +283,6 @@ class _ConfirmAddressScreenState extends State<ConfirmAddressScreen> {
                 Icon(Icons.arrow_forward, color: Colors.white, size: 16),
               ],
             ),
-          ),
-          const SizedBox(height: 12),
-          OutlinedButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => const EnterAddressDetailsScreen()),
-              );
-            },
-            style: OutlinedButton.styleFrom(
-              foregroundColor: Colors.white,
-              minimumSize: const Size(double.infinity, 50),
-              side: const BorderSide(color: Colors.white30),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
-            ),
-            child:
-                const Text('Continue With Unnamed road, palm jumeirah Dubai'),
           ),
         ],
       ),

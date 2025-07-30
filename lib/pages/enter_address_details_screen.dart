@@ -113,7 +113,7 @@ class _EnterAddressDetailsScreenState extends State<EnterAddressDetailsScreen> {
                           ),
                         ),
                         TextButton(
-                          onPressed: () {},
+                          onPressed: () => Navigator.pop(context),
                           child: Text('Change',
                               style: TextStyle(color: Colors.yellow[700])),
                         ),

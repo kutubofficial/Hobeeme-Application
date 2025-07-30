@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'pages/search_page.dart';
+import 'map_page/map_page.dart' as map_page;
 
 void main() {
   runApp(const MyApp());
@@ -19,6 +20,7 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: const Color(0xFF1C1C1E),
       ),
       home: const SearchScreen(),
+      // home: map_page.MapScreen(),
     );
   }
 }

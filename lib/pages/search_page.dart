@@ -1,14 +1,104 @@
+// import 'package:flutter/material.dart';
+// // import 'package:flutter/services.dart';
+// import 'confirm_address_screen.dart';
+
+// class SearchScreen extends StatelessWidget {
+//   const SearchScreen({super.key});
+
+//   @override
+//   Widget build(BuildContext context) {
+//     // SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
+
+//     return Scaffold(
+//       body: SafeArea(
+//         bottom: false,
+//         child: Column(
+//           children: [
+//             Padding(
+//               padding: const EdgeInsets.fromLTRB(8, 12, 8, 16),
+//               child: Row(
+//                 children: [
+//                   IconButton(
+//                     icon: const Icon(Icons.arrow_back,
+//                         size: 28, color: Colors.white),
+//                     onPressed: () {
+//                       ScaffoldMessenger.of(context).showSnackBar(
+//                         const SnackBar(
+//                           backgroundColor: Colors.red,
+//                           content: Text('Not working yet...'),
+//                         ),
+//                       );
+//                     },
+//                   ),
+//                   const SizedBox(width: 4),
+//                   Expanded(
+//                     child: TextField(
+//                       style: const TextStyle(color: Colors.white, fontSize: 17),
+//                       decoration: InputDecoration(
+//                         hintText: 'Search for area, street Name ...',
+//                         hintStyle:
+//                             TextStyle(color: Colors.grey[500], fontSize: 17),
+//                         filled: true,
+//                         fillColor: const Color(0xFF2C2C2E),
+//                         border: OutlineInputBorder(
+//                           borderRadius: BorderRadius.circular(22.0),
+//                           borderSide: BorderSide(
+//                             color: const Color.fromARGB(239, 62, 62, 62),
+//                             width: 0.6,
+//                           ),
+//                         ),
+//                         isDense: true,
+//                         contentPadding: const EdgeInsets.symmetric(
+//                             horizontal: 16, vertical: 12),
+//                         suffixIcon: Icon(Icons.close, color: Colors.grey[400]),
+//                       ),
+//                     ),
+//                   ),
+//                   //! Added location button to navigate to the next screen
+//                   IconButton(
+//                     icon: const Icon(Icons.location_on_outlined,
+//                         size: 28, color: Colors.white),
+//                     onPressed: () {
+//                       Navigator.push(
+//                         context,
+//                         MaterialPageRoute(
+//                             builder: (context) => const SelectLocationScreen()),
+//                       );
+//                     },
+//                   ),
+//                 ],
+//               ),
+//             ),
+
 import 'package:flutter/material.dart';
-// import 'package:flutter/services.dart';
 import 'confirm_address_screen.dart';
 
-class SearchScreen extends StatelessWidget {
+class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
+  State<SearchScreen> createState() => _SearchScreenState();
+}
 
+class _SearchScreenState extends State<SearchScreen> {
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(() {
+      setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
         bottom: false,
@@ -33,6 +123,7 @@ class SearchScreen extends StatelessWidget {
                   const SizedBox(width: 4),
                   Expanded(
                     child: TextField(
+                      controller: _searchController,
                       style: const TextStyle(color: Colors.white, fontSize: 17),
                       decoration: InputDecoration(
                         hintText: 'Search for area, street Name ...',
@@ -42,19 +133,26 @@ class SearchScreen extends StatelessWidget {
                         fillColor: const Color(0xFF2C2C2E),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(22.0),
-                          borderSide: BorderSide(
-                            color: const Color.fromARGB(239, 62, 62, 62),
+                          borderSide: const BorderSide(
+                            color: Color.fromARGB(239, 62, 62, 62),
                             width: 0.6,
                           ),
                         ),
                         isDense: true,
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 16, vertical: 12),
-                        suffixIcon: Icon(Icons.close, color: Colors.grey[400]),
+                        suffixIcon: _searchController.text.isNotEmpty
+                            ? IconButton(
+                                icon:
+                                    Icon(Icons.close, color: Colors.grey[400]),
+                                onPressed: () {
+                                  _searchController.clear();
+                                },
+                              )
+                            : null,
                       ),
                     ),
                   ),
-                  //! Added location button to navigate to the next screen
                   IconButton(
                     icon: const Icon(Icons.location_on_outlined,
                         size: 28, color: Colors.white),
