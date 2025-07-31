@@ -34,7 +34,7 @@ class _CreateNewPasswordState extends State<CreateNewPassword> {
         context,
       ).showSnackBar(const SnackBar(
           content: Text(
-        'Account created Successful',
+        'Password changes Successful',
         style: TextStyle(color: Colors.green),
       )));
       _nameController.clear();

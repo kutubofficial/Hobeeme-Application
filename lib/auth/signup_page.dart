@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:task_two/auth/loginpage.dart';
 import 'text_field.dart';
 import 'social_button.dart';
-import '../pages/search_page.dart';
+import 'user_data_helper.dart';
 
 class SignupPage extends StatefulWidget {
   const SignupPage({super.key});
@@ -13,39 +13,53 @@ class SignupPage extends StatefulWidget {
 
 class _SignupPageState extends State<SignupPage> {
   final _formKey = GlobalKey<FormState>();
+
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
       TextEditingController();
-  bool _obscureText = true;
-  bool _rememberMe = false;
 
-  void _handleSignup() {
+  bool _obscureText = true;
+
+  //! MODIFIED: This now uses UserDataHelper for cleaner, more reliable logic.
+  void _handleSignup() async {
     if (_formKey.currentState!.validate()) {
-      String name = _nameController.text.trim();
+      if (_passwordController.text != _confirmPasswordController.text) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              backgroundColor: Colors.red,
+              content: Text('Passwords do not match')),
+        );
+        return;
+      }
+
       String email = _emailController.text.trim();
       String password = _passwordController.text;
 
-      print("name: $name");
-      print("Email: $email");
-      print("Password: $password");
-      print("Remember me: $_rememberMe");
+      bool userAlreadyExists = await UserDataHelper.userExists(email);
 
-      ScaffoldMessenger.of(
+      if (userAlreadyExists) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              backgroundColor: Colors.orange,
+              content: Text('An account with this email already exists.')),
+        );
+        return;
+      }
+
+      // * Save the new user
+      await UserDataHelper.saveUser(email, password);
+
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        backgroundColor: Colors.green,
+        content: Text('Account created successfully! Please log in.'),
+      ));
+
+      Navigator.pushAndRemoveUntil(
         context,
-      ).showSnackBar(const SnackBar(
-          content: Text(
-        'Account created Successful',
-        style: TextStyle(color: Colors.green),
-      )));
-      _nameController.clear();
-      _emailController.clear();
-      _passwordController.clear();
-      _confirmPasswordController.clear();
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const SearchScreen()),
+        MaterialPageRoute(builder: (context) => const LoginPage()),
+        (Route<dynamic> route) => false,
       );
     }
   }
@@ -60,8 +74,6 @@ class _SignupPageState extends State<SignupPage> {
             child: Form(
               key: _formKey,
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Image.asset('assets/rocket.gif', height: 80),
                   const SizedBox(height: 20),
@@ -69,34 +81,33 @@ class _SignupPageState extends State<SignupPage> {
                     "Create New Account",
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    "Sign up to account",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 16, color: Colors.white70),
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white),
                   ),
                   const SizedBox(height: 48),
                   CustomTextField(
-                    controller: _emailController,
+                    controller: _nameController,
                     labelText: 'Full Name',
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter your name';
+                      }
+                      return null;
+                    },
                   ),
                   const SizedBox(height: 20),
                   CustomTextField(
-                    controller: _nameController,
+                    controller: _emailController,
                     labelText: 'Email',
-                    // validator: (value) {
-                    //   if (value == null ||
-                    //       value.isEmpty ||
-                    //       !value.contains('@')) {
-                    //     return 'Please enter a valid email';
-                    //   }
-                    //   return null;
-                    // },
+                    validator: (value) {
+                      if (value == null ||
+                          value.isEmpty ||
+                          !value.contains('@')) {
+                        return 'Please enter a valid email';
+                      }
+                      return null;
+                    },
                   ),
                   const SizedBox(height: 20),
                   CustomTextField(
@@ -104,62 +115,34 @@ class _SignupPageState extends State<SignupPage> {
                     labelText: 'Password',
                     obscureText: _obscureText,
                     suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscureText
-                            ? Icons.visibility_off_outlined
-                            : Icons.visibility_outlined,
-                        color: Colors.grey[400],
-                      ),
+                      icon: Icon(_obscureText
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined),
+                      color: Colors.grey[400],
                       onPressed: () {
                         setState(() {
                           _obscureText = !_obscureText;
                         });
                       },
                     ),
+                    validator: (value) {
+                      if (value == null || value.length < 6) {
+                        return 'Password must be at least 6 characters';
+                      }
+                      return null;
+                    },
                   ),
                   const SizedBox(height: 20),
                   CustomTextField(
                     controller: _confirmPasswordController,
                     labelText: 'Confirm Password',
                     obscureText: _obscureText,
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscureText
-                            ? Icons.visibility_off_outlined
-                            : Icons.visibility_outlined,
-                        color: Colors.grey[400],
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _obscureText = !_obscureText;
-                        });
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          Checkbox(
-                            value: _rememberMe,
-                            onChanged: (bool? value) {
-                              setState(() {
-                                _rememberMe = value!;
-                              });
-                            },
-                            checkColor: Colors.black,
-                            activeColor: Colors.yellow[700],
-                            side: const BorderSide(color: Colors.white54),
-                          ),
-                          const Text(
-                            'Remember me',
-                            style: TextStyle(color: Colors.white70),
-                          ),
-                        ],
-                      ),
-                    ],
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please confirm your password';
+                      }
+                      return null;
+                    },
                   ),
                   const SizedBox(height: 30),
                   ElevatedButton(
@@ -170,29 +153,15 @@ class _SignupPageState extends State<SignupPage> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
+                      minimumSize: const Size(double.infinity, 50),
                     ),
                     child: const Text(
                       'Sign Up',
                       style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black),
                     ),
-                  ),
-                  const SizedBox(height: 20),
-                  const Row(
-                    children: [
-                      Expanded(child: Divider(color: Colors.white24)),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 8.0),
-                        child: Text(
-                          'or sign up with',
-                          style: TextStyle(color: Colors.white70),
-                        ),
-                      ),
-                      Expanded(child: Divider(color: Colors.white24)),
-                    ],
                   ),
                   const SizedBox(height: 30),
                   const Row(
@@ -209,10 +178,8 @@ class _SignupPageState extends State<SignupPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text(
-                        "Already have an account?",
-                        style: TextStyle(color: Colors.white70),
-                      ),
+                      const Text("Already have an account?",
+                          style: TextStyle(color: Colors.white70)),
                       TextButton(
                         onPressed: () {
                           Navigator.push(
@@ -221,13 +188,10 @@ class _SignupPageState extends State<SignupPage> {
                                 builder: (context) => const LoginPage()),
                           );
                         },
-                        child: Text(
-                          'Log In',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.yellow[700],
-                          ),
-                        ),
+                        child: Text('Log In',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.yellow[700])),
                       ),
                     ],
                   ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:task_two/auth/loginpage.dart';
 import 'confirm_address_screen.dart';
 
 class LocationData {
@@ -136,7 +137,12 @@ class _SearchScreenState extends State<SearchScreen> {
                   IconButton(
                     icon: const Icon(Icons.arrow_back,
                         size: 28, color: Colors.white),
-                    onPressed: () => Navigator.pop(context),
+                    // onPressed: () => Navigator.pop(context),
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const LoginPage()),
+                    ),
                   ),
                   const SizedBox(width: 4),
                   Expanded(
