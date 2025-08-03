@@ -308,9 +308,14 @@ class DanceClassItem extends StatelessWidget {
               color: const Color(0xFF3A302B),
               borderRadius: BorderRadius.circular(10)),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: const Icon(Icons.music_note, color: Colors.white, size: 30),
-          ),
+              borderRadius: BorderRadius.circular(10),
+              // child: const Icon(Icons.music_note, color: Colors.white, size: 30),
+              child: Image.asset(
+                'assets/image.png',
+                width: 60,
+                height: 60,
+                fit: BoxFit.cover,
+              )),
         ),
         const SizedBox(width: 12),
         const Text('Salsa dance by DD Studio',

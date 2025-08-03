@@ -22,7 +22,6 @@ class _SignupPageState extends State<SignupPage> {
 
   bool _obscureText = true;
 
-  //! MODIFIED: This now uses UserDataHelper for cleaner, more reliable logic.
   void _handleSignup() async {
     if (_formKey.currentState!.validate()) {
       if (_passwordController.text != _confirmPasswordController.text) {
@@ -48,7 +47,6 @@ class _SignupPageState extends State<SignupPage> {
         return;
       }
 
-      // * Save the new user
       await UserDataHelper.saveUser(email, password);
 
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
@@ -62,6 +60,11 @@ class _SignupPageState extends State<SignupPage> {
         (Route<dynamic> route) => false,
       );
     }
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginPage()),
+      (Route<dynamic> route) => false,
+    );
   }
 
   @override
