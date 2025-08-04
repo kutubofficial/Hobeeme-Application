@@ -96,7 +96,7 @@ Widget _buildProfileHeader(context) {
         Positioned(
           top: 200,
           left: 140,
-          right: 18,
+          right: 24,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
