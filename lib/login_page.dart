@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:task_two/pages/search_page.dart';
+import 'package:Hobeeme/pages/search_page.dart';
 import '../utils/user_loader.dart';
 import '../models/user_model.dart';
 import 'auth/signup_page.dart';

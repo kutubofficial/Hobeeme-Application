@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:task_two/auth/forget_password.dart';
-import 'package:task_two/auth/signup_page.dart';
+import 'package:Hobeeme/auth/forget_password.dart';
+import 'package:Hobeeme/auth/signup_page.dart';
 import 'text_field.dart';
 import 'social_button.dart';
 import '../pages/search_page.dart';

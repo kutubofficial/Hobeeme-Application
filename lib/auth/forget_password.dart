@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:task_two/auth/loginpage.dart';
-import 'package:task_two/auth/verify_otp.dart';
+import 'package:Hobeeme/auth/loginpage.dart';
+import 'package:Hobeeme/auth/verify_otp.dart';
 import 'text_field.dart';
 
 class ForgetPassword extends StatefulWidget {

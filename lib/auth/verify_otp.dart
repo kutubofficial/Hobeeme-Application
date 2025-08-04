@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:task_two/auth/create_new_password.dart';
-import 'package:task_two/auth/loginpage.dart';
+import 'package:Hobeeme/auth/create_new_password.dart';
+import 'package:Hobeeme/auth/loginpage.dart';
 import 'text_field.dart';
 
 class VerifyOtp extends StatefulWidget {

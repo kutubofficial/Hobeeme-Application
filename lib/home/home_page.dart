@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:task_two/auth/signup_page.dart';
-import 'package:task_two/home/account_page.dart';
-import 'package:task_two/home/bookings_page.dart';
-import 'package:task_two/home/offers_page.dart';
+import 'package:Hobeeme/auth/signup_page.dart';
+import 'package:Hobeeme/home/account_page.dart';
+import 'package:Hobeeme/home/bookings_page.dart';
+import 'package:Hobeeme/home/offers_page.dart';
 import 'package:video_player/video_player.dart';
 import 'categories_page.dart';
 

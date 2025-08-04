@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'personal_info_page.dart';
 
 class AccountPage extends StatelessWidget {
   const AccountPage({super.key});
@@ -10,7 +11,7 @@ class AccountPage extends StatelessWidget {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            _buildProfileHeader(),
+            _buildProfileHeader(context),
             const SizedBox(height: 60),
             _buildScoreCard(),
             const SizedBox(height: 16),
@@ -24,7 +25,7 @@ class AccountPage extends StatelessWidget {
   }
 }
 
-Widget _buildProfileHeader() {
+Widget _buildProfileHeader(context) {
   return SizedBox(
     height: 235,
     child: Stack(
@@ -47,15 +48,24 @@ Widget _buildProfileHeader() {
                 child: Image.asset('assets/rocket.gif', height: 90),
               ),
               Positioned(
-                top: 140,
+                top: 130,
                 right: 20,
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(10),
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const PersonalInfoPage()),
+                    );
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.edit_outlined, color: Colors.black),
                   ),
-                  child: const Icon(Icons.edit_outlined, color: Colors.black),
                 ),
               ),
             ],
@@ -267,6 +277,7 @@ Widget _buildInfoCard({
         Text(value,
             style: const TextStyle(
                 color: Colors.white,
+                fontFamily: 'Poppins',
                 fontSize: 20,
                 fontWeight: FontWeight.bold)),
         const SizedBox(height: 4),
