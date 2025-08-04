@@ -68,7 +68,7 @@ class PersonalInfoPage extends StatelessWidget {
         children: [
           const CircleAvatar(
             radius: 60,
-            // backgroundColor: Colors.yellow,
+            backgroundColor: Color.fromARGB(255, 248, 158, 23),
             backgroundImage: AssetImage('assets/edit_profile_pic.png'),
           ),
           Positioned(
