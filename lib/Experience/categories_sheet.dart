@@ -151,17 +151,18 @@ class _CategoriesSheetState extends State<CategoriesSheet> {
                       icon: Icon(
                         _getIconForCategory(category.name),
                         size: 20,
-                        color: isSelected ? Colors.black : Colors.white,
+                        color: isSelected ? Colors.yellow : Colors.white,
                       ),
                       label: Text(
                         category.name,
                         style: TextStyle(
-                          color: isSelected ? Colors.black : Colors.white,
+                          color: isSelected ? Colors.yellow : Colors.white,
                         ),
                       ),
                       style: OutlinedButton.styleFrom(
-                        backgroundColor:
-                            isSelected ? Colors.yellow : Colors.transparent,
+                        backgroundColor: isSelected
+                            ? Colors.transparent
+                            : Colors.transparent,
                         side: BorderSide(
                           color:
                               isSelected ? Colors.yellow : Colors.grey.shade600,

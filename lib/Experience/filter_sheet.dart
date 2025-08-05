@@ -15,25 +15,24 @@ class _FilterSheetState extends State<FilterSheet> {
   final List<String> _filterCategories = [
     'Sub-Category',
     'Price',
-    'Age',
     'Location',
     'Day',
     'Time',
-    'Skill Level',
     'Class Type',
   ];
 
   final List<String> _subCategoryOptions = [
-    'Category 1',
-    'Category 2',
-    'Category 3',
-    'Category 4',
+    'Art & Crafts',
+    'Public Speaking',
+    'YOGA & Meditation',
+    'Kids Summer Camp',
+    'Creative Writing'
   ];
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(20.0),
+      padding: const EdgeInsets.all(15.0),
       decoration: const BoxDecoration(
         color: Color(0xFF212121),
         borderRadius: BorderRadius.only(
@@ -49,7 +48,7 @@ class _FilterSheetState extends State<FilterSheet> {
           const Divider(color: Colors.white24),
           const SizedBox(height: 16),
           _buildFilterContent(),
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
           _buildFooter(),
         ],
       ),
@@ -65,6 +64,7 @@ class _FilterSheetState extends State<FilterSheet> {
           style: TextStyle(
             color: Colors.white,
             fontSize: 22,
+            fontFamily: 'Poppins',
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -76,7 +76,8 @@ class _FilterSheetState extends State<FilterSheet> {
           },
           child: Text(
             'Reset',
-            style: TextStyle(color: Colors.yellow[700], fontSize: 16),
+            style: TextStyle(
+                color: Colors.yellow[700], fontFamily: 'Poppins', fontSize: 16),
           ),
         ),
       ],
@@ -133,14 +134,17 @@ class _FilterSheetState extends State<FilterSheet> {
         Expanded(
           flex: 3,
           child: Padding(
-            padding: const EdgeInsets.only(left: 20.0),
+            padding: const EdgeInsets.only(left: 15.0),
             child: _selectedCategoryIndex == 0
                 ? _buildSubCategoryOptions()
                 : Center(
-                    child: Text(
-                      'Options for\n${_filterCategories[_selectedCategoryIndex]}',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.grey[600]),
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 100),
+                      child: Text(
+                        'Please select ${_filterCategories[_selectedCategoryIndex]} categories',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.grey[500]),
+                      ),
                     ),
                   ),
           ),
