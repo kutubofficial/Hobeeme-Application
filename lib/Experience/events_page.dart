@@ -57,8 +57,7 @@ class Event {
     }
 
     return Event(
-      imageUrl: json['cover_image'] ??
-          'https://placehold.co/600x400/1e1e1e/FFF?text=No+Image',
+      imageUrl: json['cover_image'] ?? '',
       title: json['listing_name'] ?? 'No Title',
       location: json['listing_location_address'] ?? 'Location not specified',
       displayDate: formattedDate,
@@ -80,24 +79,27 @@ class EventsPage extends StatefulWidget {
 class _EventsPageState extends State<EventsPage> {
   late Future<List<Event>> futureEvents;
   int _eventCount = 0;
+
   String _selectedCategoryName = 'All';
+  String _selectedCategorySlug = 'all';
 
   @override
   void initState() {
     super.initState();
-    futureEvents = fetchEvents(category: _selectedCategoryName);
+    futureEvents = fetchEvents(categorySlug: _selectedCategorySlug);
   }
 
-  Future<List<Event>> fetchEvents({required String category}) async {
+  Future<List<Event>> fetchEvents({required String categorySlug}) async {
     final url = Uri.parse(
         'https://catalog.hobbeeme.com/filter/vendor-experience-listing?page=1&limit=30');
 
     final Map<String, dynamic> requestBody = {};
 
-    if (category != 'All') {
-      requestBody['categoryName'] = category;
+    if (categorySlug != 'all') {
+      requestBody['category'] = categorySlug;
     }
-    // requestBody['categoryName'] = category;
+    // requestBody['category_slug'] = categorySlug;
+    print('this is the slug-category---- $categorySlug');
 
     final response = await http.post(
       url,
@@ -125,20 +127,21 @@ class _EventsPageState extends State<EventsPage> {
   }
 
   void _showCategorySheet() async {
-    final result = await showModalBottomSheet<String>(
+    final result = await showModalBottomSheet<CategoryItem>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) {
-        return CategoriesSheet(selectedCategory: _selectedCategoryName);
+        return CategoriesSheet(selectedCategorySlug: _selectedCategorySlug);
       },
     );
 
-    if (result != null && result != _selectedCategoryName) {
+    if (result != null && result.slug != _selectedCategorySlug) {
       setState(() {
-        _selectedCategoryName = result;
+        _selectedCategoryName = result.name;
+        _selectedCategorySlug = result.slug;
         _eventCount = 0;
-        futureEvents = fetchEvents(category: _selectedCategoryName);
+        futureEvents = fetchEvents(categorySlug: _selectedCategorySlug);
       });
     }
   }
@@ -205,10 +208,6 @@ class _EventsPageState extends State<EventsPage> {
               icon: const Icon(Icons.search, color: Colors.white, size: 28),
               onPressed: () {}),
         ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1.0),
-          child: Container(color: Colors.grey[800], height: 1.0),
-        ),
       ),
       body: Center(
         child: FutureBuilder<List<Event>>(

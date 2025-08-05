@@ -95,6 +95,7 @@ class _FilterSheetState extends State<FilterSheet> {
             itemCount: _filterCategories.length,
             itemBuilder: (context, index) {
               final isSelected = _selectedCategoryIndex == index;
+
               return GestureDetector(
                 onTap: () {
                   setState(() {
@@ -141,7 +142,7 @@ class _FilterSheetState extends State<FilterSheet> {
                     child: Padding(
                       padding: const EdgeInsets.only(top: 100),
                       child: Text(
-                        'Please select ${_filterCategories[_selectedCategoryIndex]} categories',
+                        'No data of${_filterCategories[_selectedCategoryIndex]} categories',
                         textAlign: TextAlign.center,
                         style: TextStyle(color: Colors.grey[500]),
                       ),
@@ -159,6 +160,7 @@ class _FilterSheetState extends State<FilterSheet> {
       itemCount: _subCategoryOptions.length,
       itemBuilder: (context, index) {
         final isChecked = _selectedSubCategories.contains(index);
+
         return CheckboxListTile(
           title: Text(
             _subCategoryOptions[index],

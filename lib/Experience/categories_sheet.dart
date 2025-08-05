@@ -4,20 +4,22 @@ import 'package:http/http.dart' as http;
 
 class CategoryItem {
   final String name;
+  final String slug;
 
-  CategoryItem({required this.name});
+  CategoryItem({required this.name, required this.slug});
 
   factory CategoryItem.fromJson(Map<String, dynamic> json) {
     return CategoryItem(
       name: json['name'] ?? 'Unnamed Category',
+      slug: json['category_slug'] ?? '',
     );
   }
 }
 
 class CategoriesSheet extends StatefulWidget {
-  final String selectedCategory;
+  final String selectedCategorySlug;
 
-  const CategoriesSheet({super.key, this.selectedCategory = 'All'});
+  const CategoriesSheet({super.key, this.selectedCategorySlug = 'all'});
 
   @override
   State<CategoriesSheet> createState() => _CategoriesSheetState();
@@ -25,12 +27,12 @@ class CategoriesSheet extends StatefulWidget {
 
 class _CategoriesSheetState extends State<CategoriesSheet> {
   late Future<List<CategoryItem>> _futureCategories;
-  late String _currentSelection;
+  late String _currentSelectionSlug;
 
   @override
   void initState() {
     super.initState();
-    _currentSelection = widget.selectedCategory;
+    _currentSelectionSlug = widget.selectedCategorySlug;
     _futureCategories = fetchCategories();
   }
 
@@ -45,7 +47,7 @@ class _CategoriesSheetState extends State<CategoriesSheet> {
       List<CategoryItem> categories =
           items.map((item) => CategoryItem.fromJson(item)).toList();
 
-      categories.insert(0, CategoryItem(name: 'All'));
+      categories.insert(0, CategoryItem(name: 'All', slug: 'all'));
 
       return categories;
     } else {
@@ -100,22 +102,16 @@ class _CategoriesSheetState extends State<CategoriesSheet> {
             ),
           ),
           const SizedBox(height: 24),
-          const Text(
-            'Categories',
-            style: TextStyle(
-              color: Colors.yellow,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+          const Text('Categories',
+              style: TextStyle(
+                  color: Colors.yellow,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Text(
             'Sed ut perspiciatis unde omnis iste natus error sit voluptatem',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Colors.grey[400],
-              fontSize: 14,
-            ),
+            style: TextStyle(color: Colors.grey[400], fontSize: 14),
           ),
           const SizedBox(height: 16),
           const Divider(color: Colors.grey),
@@ -126,9 +122,8 @@ class _CategoriesSheetState extends State<CategoriesSheet> {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(
                     child: Padding(
-                  padding: EdgeInsets.all(32.0),
-                  child: CircularProgressIndicator(),
-                ));
+                        padding: EdgeInsets.all(32.0),
+                        child: CircularProgressIndicator()));
               } else if (snapshot.hasError) {
                 return Center(
                     child: Text('Error: ${snapshot.error}',
@@ -140,29 +135,25 @@ class _CategoriesSheetState extends State<CategoriesSheet> {
                   runSpacing: 12.0,
                   alignment: WrapAlignment.center,
                   children: categories.map((category) {
-                    final isSelected = category.name == _currentSelection;
+                    final isSelected = category.slug == _currentSelectionSlug;
                     return OutlinedButton.icon(
                       onPressed: () {
-                        setState(() {
-                          _currentSelection = category.name;
-                        });
-                        Navigator.pop(context, category.name);
+                        Navigator.pop(context, category);
                       },
                       icon: Icon(
                         _getIconForCategory(category.name),
                         size: 20,
-                        color: isSelected ? Colors.yellow : Colors.white,
+                        color: isSelected ? Colors.black : Colors.white,
                       ),
                       label: Text(
                         category.name,
                         style: TextStyle(
-                          color: isSelected ? Colors.yellow : Colors.white,
+                          color: isSelected ? Colors.black : Colors.white,
                         ),
                       ),
                       style: OutlinedButton.styleFrom(
-                        backgroundColor: isSelected
-                            ? Colors.transparent
-                            : Colors.transparent,
+                        backgroundColor:
+                            isSelected ? Colors.yellow : Colors.transparent,
                         side: BorderSide(
                           color:
                               isSelected ? Colors.yellow : Colors.grey.shade600,
