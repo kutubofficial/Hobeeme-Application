@@ -15,23 +15,23 @@ class FilterSheet extends StatefulWidget {
 
 class _FilterSheetState extends State<FilterSheet> {
   int _selectedFilterTypeIndex = 0;
-  final Set<String> _selectedSubCategoryIds = {};
-  // final Set<String> _selectedSubCategoryName = {};
+  // This now stores the selected slugs.
+  final Set<String> _selectedSubCategorySlugs = {};
   RangeValues _currentRangeValues = const RangeValues(0, 1000);
 
   final List<String> _filterTypes = [
     'Sub-Category',
     'Price',
     'Location',
-    'Day',
-    'Time',
-    'Class Type',
+    // 'Day',
+    // 'Time',
+    // 'Class Type',
   ];
 
   /// Resets all filters to their default values.
   void _resetFilters() {
     setState(() {
-      _selectedSubCategoryIds.clear();
+      _selectedSubCategorySlugs.clear();
       _currentRangeValues = const RangeValues(0, 1000);
     });
   }
@@ -55,7 +55,6 @@ class _FilterSheetState extends State<FilterSheet> {
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15.0),
-              // This Row contains the left menu and right content panel
               child: _buildFilterContent(),
             ),
           ),
@@ -112,7 +111,6 @@ class _FilterSheetState extends State<FilterSheet> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Left side: Filter Types Menu
         Expanded(
           flex: 2,
           child: ListView.builder(
@@ -157,7 +155,6 @@ class _FilterSheetState extends State<FilterSheet> {
           ),
         ),
         const VerticalDivider(color: Colors.white24, thickness: 1, width: 24),
-        // Right side: Conditional Filter Options
         Expanded(
           flex: 3,
           child: _buildFilterOptionsPanel(),
@@ -166,14 +163,13 @@ class _FilterSheetState extends State<FilterSheet> {
     );
   }
 
-  /// This widget decides which filter UI to show on the right side.
   Widget _buildFilterOptionsPanel() {
     switch (_selectedFilterTypeIndex) {
-      case 0: // Sub-Category
+      case 0:
         return _buildSubCategoryOptions();
-      case 1: // Price
+      case 1:
         return _buildPriceRange();
-      default: // Placeholder for other filters
+      default:
         return Center(
           child: Padding(
             padding: const EdgeInsets.only(top: 50.0),
@@ -187,7 +183,6 @@ class _FilterSheetState extends State<FilterSheet> {
     }
   }
 
-  /// Builds the price range slider UI.
   Widget _buildPriceRange() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -231,7 +226,6 @@ class _FilterSheetState extends State<FilterSheet> {
     );
   }
 
-  /// Builds the sub-category checkboxes from the Future.
   Widget _buildSubCategoryOptions() {
     if (widget.subCategoriesFuture == null) {
       return Center(
@@ -275,7 +269,9 @@ class _FilterSheetState extends State<FilterSheet> {
           itemCount: subCategories.length,
           itemBuilder: (context, index) {
             final subCategory = subCategories[index];
-            final isChecked = _selectedSubCategoryIds.contains(subCategory.id);
+            // Check if the slug is in the set.
+            final isChecked =
+                _selectedSubCategorySlugs.contains(subCategory.slug);
 
             return CheckboxListTile(
               title: Text(
@@ -283,12 +279,13 @@ class _FilterSheetState extends State<FilterSheet> {
                 style: const TextStyle(color: Colors.white),
               ),
               value: isChecked,
+              // Add/remove the slug from the set.
               onChanged: (bool? value) {
                 setState(() {
                   if (value == true) {
-                    _selectedSubCategoryIds.add(subCategory.id);
+                    _selectedSubCategorySlugs.add(subCategory.slug);
                   } else {
-                    _selectedSubCategoryIds.remove(subCategory.id);
+                    _selectedSubCategorySlugs.remove(subCategory.slug);
                   }
                 });
               },
@@ -303,7 +300,6 @@ class _FilterSheetState extends State<FilterSheet> {
     );
   }
 
-  //*This now sends the selected filter data back to the EventsPage.
   Widget _buildFooter() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -327,12 +323,11 @@ class _FilterSheetState extends State<FilterSheet> {
         ),
         ElevatedButton(
           onPressed: () {
-            // Create a result object with the currently selected filters.
+            // Send the set of slugs back.
             final result = FilterResult(
-              subCategoryIds: _selectedSubCategoryIds,
+              subCategorySlugs: _selectedSubCategorySlugs,
               priceRange: _currentRangeValues,
             );
-            // Pop the sheet and pass the result object back.
             Navigator.pop(context, result);
           },
           style: ElevatedButton.styleFrom(

@@ -6,11 +6,12 @@ import 'event_card.dart';
 import 'filter_sheet.dart';
 import 'categories_sheet.dart';
 
+//This class now holds a set of sub-category slugs.
 class FilterResult {
-  final Set<String> subCategoryIds;
+  final Set<String> subCategorySlugs;
   final RangeValues priceRange;
 
-  FilterResult({required this.subCategoryIds, required this.priceRange});
+  FilterResult({required this.subCategorySlugs, required this.priceRange});
 }
 
 class SubCategory {
@@ -125,26 +126,22 @@ class _EventsPageState extends State<EventsPage> {
   String _selectedCategoryName = 'All';
   String _selectedCategorySlug = 'all';
 
-  // State variables to hold the selected filters
-  Set<String> _selectedSubCategoryIds = {};
+  // State variables now store selected slugs.
+  Set<String> _selectedSubCategorySlugs = {};
   RangeValues _selectedPriceRange = const RangeValues(0, 1000);
 
-  // Holds the future result of the sub-category API call.
   Future<List<SubCategory>>? futureSubCategories;
 
   @override
   void initState() {
     super.initState();
-    // Initial fetch without any filters
     futureEvents = fetchEvents(categorySlug: _selectedCategorySlug);
   }
 
-  // --- API CALLS ---
-
-  // * Function now accepts optional filter parameters.
+  //! Function now accepts and sends sub-category slugs.
   Future<List<Event>> fetchEvents({
     required String categorySlug,
-    Set<String>? subCategoryIds,
+    Set<String>? subCategorySlugs,
     RangeValues? priceRange,
   }) async {
     final url = Uri.parse(
@@ -152,21 +149,22 @@ class _EventsPageState extends State<EventsPage> {
 
     final Map<String, dynamic> requestBody = {};
 
-    // Add main category
     if (categorySlug != 'all') {
       requestBody['category'] = categorySlug;
     }
-    // Add sub-category IDs if they exist
-    if (subCategoryIds != null && subCategoryIds.isNotEmpty) {
-      requestBody['sub_categories'] = subCategoryIds.toList();
+
+    // Add sub-category slugs to the request body.
+    if (subCategorySlugs != null && subCategorySlugs.isNotEmpty) {
+      requestBody['sub_categories'] = subCategorySlugs.toList();
     }
 
+    // Add price range slugs to the request body.
     if (priceRange != null) {
-      requestBody['lowestPrice'] = priceRange.start.round();
+      requestBody['minPrice'] = priceRange.start.round();
       requestBody['maxPrice'] = priceRange.end.round();
     }
 
-    print('-------Request Body:--------- ${jsonEncode(requestBody)}');
+    print('--------->Request Body: ${jsonEncode(requestBody)}');
 
     final response = await http.post(
       url,
@@ -179,7 +177,6 @@ class _EventsPageState extends State<EventsPage> {
       final List<dynamic> items = jsonResponse['data']['data'];
       final events =
           items.map((eventJson) => Event.fromJson(eventJson)).toList();
-      // print('EVENTS----- $events');
 
       if (mounted) {
         setState(() {
@@ -194,7 +191,6 @@ class _EventsPageState extends State<EventsPage> {
     }
   }
 
-  /// Fetches the list of sub-categories for a given main category slug.
   Future<List<SubCategory>> fetchSubCategoriesBySlug(
       String categorySlug) async {
     if (categorySlug == 'all') {
@@ -208,7 +204,6 @@ class _EventsPageState extends State<EventsPage> {
       final Map<String, dynamic> parsedJson = jsonDecode(response.body);
       final List<dynamic> subCategoryItems =
           parsedJson['data']['subcategories'];
-      print('SELECTED SUB-CATEGORY---- $SubCategory');
       return subCategoryItems
           .map((json) => SubCategory.fromJson(json))
           .toList();
@@ -235,12 +230,10 @@ class _EventsPageState extends State<EventsPage> {
         _selectedCategorySlug = result.slug;
         _eventCount = 0;
         // Reset filters when main category changes
-        _selectedSubCategoryIds = {};
+        _selectedSubCategorySlugs = {};
         _selectedPriceRange = const RangeValues(0, 1000);
 
-        // Re-fetch the events for the new category.
         futureEvents = fetchEvents(categorySlug: _selectedCategorySlug);
-        // Fetch the sub-categories for the newly selected category slug.
         futureSubCategories = fetchSubCategoriesBySlug(_selectedCategorySlug);
       });
     }
@@ -291,9 +284,7 @@ class _EventsPageState extends State<EventsPage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.filter_list, color: Colors.white, size: 28),
-            // * This function now correctly receives and applies filters.
             onPressed: () async {
-              // Wait for the FilterSheet to close and return a result.
               final result = await showModalBottomSheet<FilterResult>(
                 context: context,
                 isScrollControlled: true,
@@ -303,16 +294,16 @@ class _EventsPageState extends State<EventsPage> {
                 ),
               );
 
-              // If the user pressed "APPLY", the result will not be null.
               if (result != null) {
                 setState(() {
-                  // Store the new filters from the result.
-                  _selectedSubCategoryIds = result.subCategoryIds;
+                  // Store the new filter slugs from the result.
+                  _selectedSubCategorySlugs = result.subCategorySlugs;
                   _selectedPriceRange = result.priceRange;
+
                   // Re-fetch the events with all the new filters applied.
                   futureEvents = fetchEvents(
                     categorySlug: _selectedCategorySlug,
-                    subCategoryIds: _selectedSubCategoryIds,
+                    subCategorySlugs: _selectedSubCategorySlugs,
                     priceRange: _selectedPriceRange,
                   );
                 });
