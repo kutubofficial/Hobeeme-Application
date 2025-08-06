@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'events_page.dart';
+import 'events_page.dart'; // This import gives us access to the FilterResult and SubCategory classes
 
 class FilterSheet extends StatefulWidget {
   final Future<List<SubCategory>>? subCategoriesFuture;
@@ -14,10 +14,12 @@ class FilterSheet extends StatefulWidget {
 }
 
 class _FilterSheetState extends State<FilterSheet> {
+  // --- STATE VARIABLES ---
   int _selectedFilterTypeIndex = 0;
-  // This now stores the selected slugs.
   final Set<String> _selectedSubCategorySlugs = {};
   RangeValues _currentRangeValues = const RangeValues(0, 1000);
+  // NEW: State variable for selected locations
+  final Set<String> _selectedEmirates = {};
 
   final List<String> _filterTypes = [
     'Sub-Category',
@@ -28,11 +30,23 @@ class _FilterSheetState extends State<FilterSheet> {
     // 'Class Type',
   ];
 
+  // NEW: Hardcoded list of locations based on your screenshot
+  final List<String> _emirates = [
+    'Abu Dhabi',
+    'Dubai',
+    'Sharjah',
+    'Ajman',
+    'Umm Al Quwain',
+    'Ras Al Khaimah',
+    'Fujairah',
+  ];
+
   /// Resets all filters to their default values.
   void _resetFilters() {
     setState(() {
       _selectedSubCategorySlugs.clear();
       _currentRangeValues = const RangeValues(0, 1000);
+      _selectedEmirates.clear();
     });
   }
 
@@ -163,13 +177,16 @@ class _FilterSheetState extends State<FilterSheet> {
     );
   }
 
+  /// UPDATED: This widget now shows the location filter.
   Widget _buildFilterOptionsPanel() {
     switch (_selectedFilterTypeIndex) {
-      case 0:
+      case 0: // Sub-Category
         return _buildSubCategoryOptions();
-      case 1:
+      case 1: // Price
         return _buildPriceRange();
-      default:
+      case 2: // Location
+        return _buildLocationFilter();
+      default: // Placeholder for other filters
         return Center(
           child: Padding(
             padding: const EdgeInsets.only(top: 50.0),
@@ -181,6 +198,40 @@ class _FilterSheetState extends State<FilterSheet> {
           ),
         );
     }
+  }
+
+  /// NEW: This widget builds the location checkboxes.
+  Widget _buildLocationFilter() {
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: _emirates.length,
+      itemBuilder: (context, index) {
+        final emirate = _emirates[index];
+        final isChecked = _selectedEmirates.contains(emirate);
+
+        return CheckboxListTile(
+          title: Text(
+            emirate,
+            style: const TextStyle(color: Colors.white),
+          ),
+          value: isChecked,
+          onChanged: (bool? value) {
+            setState(() {
+              if (value == true) {
+                _selectedEmirates.add(emirate);
+              } else {
+                _selectedEmirates.remove(emirate);
+              }
+            });
+          },
+          activeColor: Colors.yellow[700],
+          checkColor: Colors.black,
+          controlAffinity: ListTileControlAffinity.leading,
+          contentPadding: EdgeInsets.zero,
+        );
+      },
+    );
   }
 
   Widget _buildPriceRange() {
@@ -269,7 +320,6 @@ class _FilterSheetState extends State<FilterSheet> {
           itemCount: subCategories.length,
           itemBuilder: (context, index) {
             final subCategory = subCategories[index];
-            // Check if the slug is in the set.
             final isChecked =
                 _selectedSubCategorySlugs.contains(subCategory.slug);
 
@@ -279,7 +329,6 @@ class _FilterSheetState extends State<FilterSheet> {
                 style: const TextStyle(color: Colors.white),
               ),
               value: isChecked,
-              // Add/remove the slug from the set.
               onChanged: (bool? value) {
                 setState(() {
                   if (value == true) {
@@ -299,6 +348,86 @@ class _FilterSheetState extends State<FilterSheet> {
       },
     );
   }
+
+  // Widget _buildSubCategoryOptions() {
+  //   if (widget.subCategoriesFuture == null) {
+  //     return Center(
+  //       child: Padding(
+  //         padding: const EdgeInsets.only(top: 50.0),
+  //         child: Text(
+  //           'Select a category to see sub-categories.',
+  //           textAlign: TextAlign.center,
+  //           style: TextStyle(color: Colors.grey[500]),
+  //         ),
+  //       ),
+  //     );
+  //   }
+
+  //   return FutureBuilder<List<SubCategory>>(
+  //     future: widget.subCategoriesFuture,
+  //     builder: (context, snapshot) {
+  //       if (snapshot.connectionState == ConnectionState.waiting) {
+  //         return const Center(child: CircularProgressIndicator());
+  //       } else if (snapshot.hasError) {
+  //         return Center(
+  //             child: Text('Error: ${snapshot.error}',
+  //                 style: const TextStyle(color: Colors.red)));
+  //       } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+  //         return Center(
+  //           child: Padding(
+  //             padding: const EdgeInsets.only(top: 50.0),
+  //             child: Text(
+  //               'No sub-categories found.',
+  //               textAlign: TextAlign.center,
+  //               style: TextStyle(color: Colors.grey[500]),
+  //             ),
+  //           ),
+  //         );
+  //       }
+
+  //       final subCategories = snapshot.data!;
+  //       return Container(
+  //         decoration: BoxDecoration(
+  //           borderRadius: BorderRadius.circular(8),
+  //         ),
+  //         child: Scrollbar(
+  //           thumbVisibility: true,
+  //           radius: const Radius.circular(8),
+  //           child: ListView.builder(
+  //             padding: const EdgeInsets.only(right: 8),
+  //             itemCount: subCategories.length,
+  //             itemBuilder: (context, index) {
+  //               final subCategory = subCategories[index];
+  //               final isChecked =
+  //                   _selectedSubCategorySlugs.contains(subCategory.slug);
+
+  //               return CheckboxListTile(
+  //                 title: Text(
+  //                   subCategory.name,
+  //                   style: const TextStyle(color: Colors.white),
+  //                 ),
+  //                 value: isChecked,
+  //                 onChanged: (bool? value) {
+  //                   setState(() {
+  //                     if (value == true) {
+  //                       _selectedSubCategorySlugs.add(subCategory.slug);
+  //                     } else {
+  //                       _selectedSubCategorySlugs.remove(subCategory.slug);
+  //                     }
+  //                   });
+  //                 },
+  //                 activeColor: Colors.yellow[700],
+  //                 checkColor: Colors.black,
+  //                 controlAffinity: ListTileControlAffinity.leading,
+  //                 contentPadding: EdgeInsets.zero,
+  //               );
+  //             },
+  //           ),
+  //         ),
+  //       );
+  //     },
+  //   );
+  // }
 
   Widget _buildFooter() {
     return Row(
@@ -323,10 +452,11 @@ class _FilterSheetState extends State<FilterSheet> {
         ),
         ElevatedButton(
           onPressed: () {
-            // Send the set of slugs back.
+            // UPDATED: Send all selected filters back.
             final result = FilterResult(
               subCategorySlugs: _selectedSubCategorySlugs,
               priceRange: _currentRangeValues,
+              emirates: _selectedEmirates,
             );
             Navigator.pop(context, result);
           },

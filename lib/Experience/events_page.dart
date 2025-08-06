@@ -6,12 +6,17 @@ import 'event_card.dart';
 import 'filter_sheet.dart';
 import 'categories_sheet.dart';
 
-//This class now holds a set of sub-category slugs.
+/// UPDATED: This class now holds the selected emirates.
 class FilterResult {
   final Set<String> subCategorySlugs;
   final RangeValues priceRange;
+  final Set<String> emirates;
 
-  FilterResult({required this.subCategorySlugs, required this.priceRange});
+  FilterResult({
+    required this.subCategorySlugs,
+    required this.priceRange,
+    required this.emirates,
+  });
 }
 
 class SubCategory {
@@ -126,9 +131,11 @@ class _EventsPageState extends State<EventsPage> {
   String _selectedCategoryName = 'All';
   String _selectedCategorySlug = 'all';
 
-  // State variables now store selected slugs.
+  // State variables to hold the selected filters
   Set<String> _selectedSubCategorySlugs = {};
   RangeValues _selectedPriceRange = const RangeValues(0, 1000);
+  // NEW: State variable for selected locations
+  Set<String> _selectedEmirates = {};
 
   Future<List<SubCategory>>? futureSubCategories;
 
@@ -138,11 +145,14 @@ class _EventsPageState extends State<EventsPage> {
     futureEvents = fetchEvents(categorySlug: _selectedCategorySlug);
   }
 
-  //! Function now accepts and sends sub-category slugs.
+  // --- API CALLS ---
+
+  /// UPDATED: Function now accepts and sends the emirates filter.
   Future<List<Event>> fetchEvents({
     required String categorySlug,
     Set<String>? subCategorySlugs,
     RangeValues? priceRange,
+    Set<String>? emirates,
   }) async {
     final url = Uri.parse(
         'https://catalog.hobbeeme.com/filter/vendor-experience-listing?page=1&limit=30');
@@ -153,18 +163,22 @@ class _EventsPageState extends State<EventsPage> {
       requestBody['category'] = categorySlug;
     }
 
-    // Add sub-category slugs to the request body.
     if (subCategorySlugs != null && subCategorySlugs.isNotEmpty) {
       requestBody['sub_categories'] = subCategorySlugs.toList();
     }
 
-    // Add price range slugs to the request body.
     if (priceRange != null) {
-      requestBody['minPrice'] = priceRange.start.round();
-      requestBody['maxPrice'] = priceRange.end.round();
+      requestBody['price_range'] = [
+        priceRange.start.round(),
+        priceRange.end.round()
+      ];
     }
 
-    print('--------->Request Body: ${jsonEncode(requestBody)}');
+    if (emirates != null && emirates.isNotEmpty) {
+      requestBody['emirates'] = emirates.toList();
+    }
+
+    print('Request Body: ${jsonEncode(requestBody)}');
 
     final response = await http.post(
       url,
@@ -229,9 +243,10 @@ class _EventsPageState extends State<EventsPage> {
         _selectedCategoryName = result.name;
         _selectedCategorySlug = result.slug;
         _eventCount = 0;
-        // Reset filters when main category changes
+        // Reset all filters when main category changes
         _selectedSubCategorySlugs = {};
         _selectedPriceRange = const RangeValues(0, 1000);
+        _selectedEmirates = {};
 
         futureEvents = fetchEvents(categorySlug: _selectedCategorySlug);
         futureSubCategories = fetchSubCategoriesBySlug(_selectedCategorySlug);
@@ -296,15 +311,17 @@ class _EventsPageState extends State<EventsPage> {
 
               if (result != null) {
                 setState(() {
-                  // Store the new filter slugs from the result.
+                  // UPDATED: Store all filters from the result.
                   _selectedSubCategorySlugs = result.subCategorySlugs;
                   _selectedPriceRange = result.priceRange;
+                  _selectedEmirates = result.emirates;
 
-                  // Re-fetch the events with all the new filters applied.
+                  // Re-fetch the events with all filters applied.
                   futureEvents = fetchEvents(
                     categorySlug: _selectedCategorySlug,
                     subCategorySlugs: _selectedSubCategorySlugs,
                     priceRange: _selectedPriceRange,
+                    emirates: _selectedEmirates,
                   );
                 });
               }
