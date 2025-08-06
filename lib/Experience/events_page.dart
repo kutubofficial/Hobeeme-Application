@@ -6,6 +6,46 @@ import 'event_card.dart';
 import 'filter_sheet.dart';
 import 'categories_sheet.dart';
 
+class FilterResult {
+  final Set<String> subCategoryIds;
+  final RangeValues priceRange;
+
+  FilterResult({required this.subCategoryIds, required this.priceRange});
+}
+
+class SubCategory {
+  final String id;
+  final String name;
+  final String slug;
+  final String parentId;
+
+  SubCategory({
+    required this.id,
+    required this.name,
+    required this.slug,
+    required this.parentId,
+  });
+
+  factory SubCategory.fromJson(Map<String, dynamic> json) {
+    return SubCategory(
+      id: json['id'] ?? '',
+      name: json['name'] ?? 'Unnamed Sub-Category',
+      slug: json['category_slug'] ?? '',
+      parentId: json['parentId'] ?? '',
+    );
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is SubCategory &&
+          runtimeType == other.runtimeType &&
+          id == other.id;
+
+  @override
+  int get hashCode => id.hashCode;
+}
+
 class Event {
   final String imageUrl;
   final String title;
@@ -69,6 +109,8 @@ class Event {
   }
 }
 
+// --- MAIN WIDGET ---
+
 class EventsPage extends StatefulWidget {
   const EventsPage({super.key});
 
@@ -77,29 +119,54 @@ class EventsPage extends StatefulWidget {
 }
 
 class _EventsPageState extends State<EventsPage> {
+  // --- STATE VARIABLES ---
   late Future<List<Event>> futureEvents;
   int _eventCount = 0;
-
   String _selectedCategoryName = 'All';
   String _selectedCategorySlug = 'all';
+
+  // State variables to hold the selected filters
+  Set<String> _selectedSubCategoryIds = {};
+  RangeValues _selectedPriceRange = const RangeValues(0, 1000);
+
+  // Holds the future result of the sub-category API call.
+  Future<List<SubCategory>>? futureSubCategories;
 
   @override
   void initState() {
     super.initState();
+    // Initial fetch without any filters
     futureEvents = fetchEvents(categorySlug: _selectedCategorySlug);
   }
 
-  Future<List<Event>> fetchEvents({required String categorySlug}) async {
+  // --- API CALLS ---
+
+  // * Function now accepts optional filter parameters.
+  Future<List<Event>> fetchEvents({
+    required String categorySlug,
+    Set<String>? subCategoryIds,
+    RangeValues? priceRange,
+  }) async {
     final url = Uri.parse(
         'https://catalog.hobbeeme.com/filter/vendor-experience-listing?page=1&limit=30');
 
     final Map<String, dynamic> requestBody = {};
 
+    // Add main category
     if (categorySlug != 'all') {
       requestBody['category'] = categorySlug;
     }
-    // requestBody['category_slug'] = categorySlug;
-    print('this is the slug-category---- $categorySlug');
+    // Add sub-category IDs if they exist
+    if (subCategoryIds != null && subCategoryIds.isNotEmpty) {
+      requestBody['sub_categories'] = subCategoryIds.toList();
+    }
+
+    if (priceRange != null) {
+      requestBody['lowestPrice'] = priceRange.start.round();
+      requestBody['maxPrice'] = priceRange.end.round();
+    }
+
+    print('-------Request Body:--------- ${jsonEncode(requestBody)}');
 
     final response = await http.post(
       url,
@@ -112,6 +179,7 @@ class _EventsPageState extends State<EventsPage> {
       final List<dynamic> items = jsonResponse['data']['data'];
       final events =
           items.map((eventJson) => Event.fromJson(eventJson)).toList();
+      // print('EVENTS----- $events');
 
       if (mounted) {
         setState(() {
@@ -125,6 +193,31 @@ class _EventsPageState extends State<EventsPage> {
           'Failed to load events. Status code: ${response.statusCode}\nBody: ${response.body}');
     }
   }
+
+  /// Fetches the list of sub-categories for a given main category slug.
+  Future<List<SubCategory>> fetchSubCategoriesBySlug(
+      String categorySlug) async {
+    if (categorySlug == 'all') {
+      return [];
+    }
+    final url = Uri.parse(
+        'https://catalog.hobbeeme.com/categories/get-category-by-slug/$categorySlug');
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> parsedJson = jsonDecode(response.body);
+      final List<dynamic> subCategoryItems =
+          parsedJson['data']['subcategories'];
+      print('SELECTED SUB-CATEGORY---- $SubCategory');
+      return subCategoryItems
+          .map((json) => SubCategory.fromJson(json))
+          .toList();
+    } else {
+      throw Exception('Failed to load sub-categories for slug: $categorySlug');
+    }
+  }
+
+  // --- UI ACTIONS ---
 
   void _showCategorySheet() async {
     final result = await showModalBottomSheet<CategoryItem>(
@@ -141,7 +234,14 @@ class _EventsPageState extends State<EventsPage> {
         _selectedCategoryName = result.name;
         _selectedCategorySlug = result.slug;
         _eventCount = 0;
+        // Reset filters when main category changes
+        _selectedSubCategoryIds = {};
+        _selectedPriceRange = const RangeValues(0, 1000);
+
+        // Re-fetch the events for the new category.
         futureEvents = fetchEvents(categorySlug: _selectedCategorySlug);
+        // Fetch the sub-categories for the newly selected category slug.
+        futureSubCategories = fetchSubCategoriesBySlug(_selectedCategorySlug);
       });
     }
   }
@@ -190,16 +290,35 @@ class _EventsPageState extends State<EventsPage> {
         centerTitle: true,
         actions: [
           IconButton(
-              icon:
-                  const Icon(Icons.filter_list, color: Colors.white, size: 28),
-              onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  backgroundColor: Colors.transparent,
-                  builder: (context) => const FilterSheet(),
-                );
-              }),
+            icon: const Icon(Icons.filter_list, color: Colors.white, size: 28),
+            // * This function now correctly receives and applies filters.
+            onPressed: () async {
+              // Wait for the FilterSheet to close and return a result.
+              final result = await showModalBottomSheet<FilterResult>(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (context) => FilterSheet(
+                  subCategoriesFuture: futureSubCategories,
+                ),
+              );
+
+              // If the user pressed "APPLY", the result will not be null.
+              if (result != null) {
+                setState(() {
+                  // Store the new filters from the result.
+                  _selectedSubCategoryIds = result.subCategoryIds;
+                  _selectedPriceRange = result.priceRange;
+                  // Re-fetch the events with all the new filters applied.
+                  futureEvents = fetchEvents(
+                    categorySlug: _selectedCategorySlug,
+                    subCategoryIds: _selectedSubCategoryIds,
+                    priceRange: _selectedPriceRange,
+                  );
+                });
+              }
+            },
+          ),
           IconButton(
               icon: const Icon(Icons.calendar_month_outlined,
                   color: Colors.white, size: 26),
@@ -227,7 +346,7 @@ class _EventsPageState extends State<EventsPage> {
             } else if (snapshot.hasData) {
               final events = snapshot.data!;
               if (events.isEmpty) {
-                return const Text('No events found for this category.',
+                return const Text('No events found with the selected filters.',
                     style: TextStyle(color: Colors.white));
               }
               return ListView.builder(
